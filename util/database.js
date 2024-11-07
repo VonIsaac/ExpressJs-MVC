@@ -5,7 +5,6 @@ const sequelize = new Sequelize('node-complete', 'root', 'vonisaac2004', {
     dialect: 'mysql', 
     host: 'localhost',
     port: 3307, // Change this to the correct port if different from 3306
-    //logging: false // Disable verbose logging
 });
 
 module.exports = sequelize;

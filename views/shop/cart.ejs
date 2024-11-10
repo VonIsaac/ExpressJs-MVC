@@ -8,17 +8,21 @@
             <ul>
                 <% products.forEach(p => { %>
                    <li>
-                        <p><%= p.productData.title %> (<%= p.qty %>)</p>
+                        <p><%= p.title %> (<%= p.cartItem.quantity %>)</p>
                         <form action="/cart-delete-item" method="POST">
-                            <input type="hidden" name="productId" value="<%= p.productData.id %>" >
+                            <input type="hidden" name="productId" value="<%= p.id %>" >
                             <button type="submit">Delete</button>
                         </form>
                    </li>
                 <% }) %> <!-- This line was missing the closing %> tag -->
             </ul>
+            <form action="/create-order" method="POST">
+                <button type="submit">Checkout</button>
+            </form>
         <% } else { %>
             <h1>No Products in Cart</h1>
         <% } %>
+      
     </main>
     <%- include('../includes/end.ejs') %>
 </body>

@@ -19,8 +19,9 @@ const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const User = require('./models/user');
 const Cart = require('./models/cart');
-const cartIem = require('./models/cart-item');
 const CartItem = require('./models/cart-item');
+const Order = require('./models/orders')
+const OrderItem = require('./models/orders-item')
 
 app.use((req, res, next) => {
     User.findByPk(1)
@@ -42,16 +43,22 @@ app.use(shopRoutes);
 app.use(errorController.get404);
 
 // Declaire Association in Sequelize to store new Tables sql
-Product.belongsTo(User, {constraints: true, onDelete: 'CASCADE'});
-User.hasMany(Product)
-User.hasOne(Cart);
-Cart.belongsTo(User)
-Cart.belongsToMany(Product, {through: CartItem});
-Product.belongsToMany(Cart ,  {through: CartItem})
+Product.belongsTo(User, {constraints: true, onDelete: 'CASCADE'}); // many to one
+User.hasMany(Product) // one to many 
+User.hasOne(Cart); // one to one 
+Cart.belongsTo(User) // many to one 
+Cart.belongsToMany(Product, {through: CartItem}); // many to many
+Product.belongsToMany(Cart ,  {through: CartItem}) // many to many
+Order.belongsTo(User); // many to one 
+User.hasMany(Order) // one to many
+Order.belongsToMany(Product, {through: OrderItem}) // many to many
+//Product.belongsToMany(Order, {through: OrderItem}) // many to many
+
 
 // syncronited them model
 sequelize
 .sync({force: true})
+//.sync()
 .then((result) => {
     //check if wee have a one id
     return User.findByPk(1)
@@ -68,6 +75,11 @@ sequelize
 })
 .then(user => {
     //console.log(user)
+   return user.createCart()
+    
+})
+
+.then(cart => {
     app.listen(3000)
 })
 .catch(err => {

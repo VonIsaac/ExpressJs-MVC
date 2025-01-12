@@ -3,7 +3,8 @@ const Product = require('../models/product');
 
 exports.getProducts = (req, res, next) => {
   //use fine all to select alll the data
-  Product.findAll().then(products => {
+  Product.fetchAll()
+  .then(products => {
     console.log(products)
     res.render('shop/product-list', {
       prods: products,
@@ -18,7 +19,7 @@ exports.getProducts = (req, res, next) => {
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
   //use findk to find the id pof producsrt
-  Product.findByPk(prodId)
+  Product.findId(prodId)
   .then(product => {
     console.log(product)
     res.render('shop/product-detail', {
@@ -47,7 +48,8 @@ exports.getProduct = (req, res, next) => {
 
 exports.getIndex = (req, res, next) => {
   //use fine all to select alll the data
-  Product.findAll().then(products => {
+  Product.fetchAll()
+  .then(products => {
     console.log(products)
     res.render('shop/index', {
       prods: products,
@@ -61,20 +63,29 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   console.log(req.user.cart)
-  req.user.getCart()
+  req.user.getCart() // one to one
   .then((cart) => {
-      return cart.getProducts()
+    if (!cart) {
+      throw new Error('Cart not found');
+    }
+  
+      return cart.getProducts() // many to many
       .then((products) => {
         res.render('shop/cart', {
           path: '/cart',
           pageTitle: 'Your Cart',
           products: products
         });
+        /*res.status(200).json(  {
+          pageTitle: 'Your Cart',
+          cart: products,
+        } );*/
       })
       .catch(err => {
         console.log(err)
       })
   })
+  
   .catch(err => {
     console.log(err)
   })
@@ -100,14 +111,30 @@ exports.getCart = (req, res, next) => {
 exports.postCart = (req, res, next) => {
   // gettinf the productId
   const prodId = req.body.productId;
-  let fetchCart;
+  Product.findId(prodId)
+  .then(product => {
+    return req.user.addToCart(product)
+  })
+  .then(result => {
+    console.log(result)
+  })
+  .catch(err => {
+
+  })
+
+
+
+
+
+
+  /*let fetchCart;
   let newQuantity = 1;
   req.user.getCart() // one to one
   .then((cart) => {
     fetchCart = cart // Store the retrieved cart in `fetchCart`
     // Check if the cart already has the product with the given ID 
     // and use the getProduct from User.hasMany(Product
-    return cart.getProducts({where: {id: prodId}}) // one to many
+    return cart.getProducts({where: {id: prodId}}) // many to many
   })
   .then(products => {
     let product;
@@ -122,9 +149,11 @@ exports.postCart = (req, res, next) => {
       // then pass the new qty to old qty the increment by 1 
       newQuantity = oldQuantity + 1
       return product
+    }else{
+      // Find the product by its ID in the Product model to ensure it's a valid product
+      return Product.findByPk(prodId)
     }
-    // Find the product by its ID in the Product model to ensure it's a valid product
-    return Product.findByPk(prodId)
+    
   })
   .then(product => {
     // use the fetchtCart and get and use addProduct from Cart.belongsToMany(Product, {through: CartItem});
@@ -139,7 +168,7 @@ exports.postCart = (req, res, next) => {
   })
   .catch(err => {
     console.log(err);
-  })
+  })*/
 };
 
 exports.postCartDeleteProduct = (req, res, next) => {
@@ -148,7 +177,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
   req.user.getCart() // one to one
   .then((cart) => {
     //use the getProducts from hasmany then where the id to pass the id's
-    return cart.getProducts({where: {id: prodId}})
+    return cart.getProducts({where: {id: prodId}}) // many to many
   })
   .then((products) => {
     // and extract the first element in arry 
@@ -160,6 +189,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
     // and if an everty ok wee redirect in the cart pages
     res.redirect('/cart')
   })
+ 
   .catch(err => {
     // catch a potential error
     console.log(err)
@@ -178,7 +208,7 @@ exports.postOrder = (req, res, nex) => {
   })
   .then(products => {
     // return from user belongsTo
-    return req.user.createOrder() // -one to many
+    return req.user.createOrder() // many to one
     .then((order) => {
       // use the addProducts from many to many relation and pass the products and map it to mapping all arry data 
       return order.addProducts(products.map(product => {
@@ -206,14 +236,17 @@ exports.postOrder = (req, res, nex) => {
 exports.getOrders = (req, res, next) => {
   req.user.getOrders({include: ['products']}) // many to many
   .then((orders) => {
-    res.render('shop/orders', {
+   /* res.render('shop/orders', {
       path: '/orders',
       pageTitle: 'Your Orders',
       orders: orders
-    });
+    });*/
+    res.status(200).json(  {
+      pageTitle: 'Your Orders',
+      orders: orders,
+    } );
   })
   .catch(err => {
     console.log(err)
   })
 };
-

@@ -4,26 +4,104 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const errorController = require('./controllers/error');
-const sequelize = require('./util/database');
+const mongoConnect = require('./util/database').mongoConnect
+//const sequelize = require('./util/database');
 
-const Product = require('./models/product');
+//const Product = require('./models/product');
 
-const user = require('./models/user')
+const User = require('./models/user')
 
 const app = express();
+
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
+//routes
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
-const User = require('./models/user');
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use((req, res, next) => {
+    User.findUserById('6783e6f9a1b4f6f43123f071')
+    .then((user) => {
+        req.user =  new User(user.name, user.email, user.cart, user._id); // pass the data in USer model
+        next()
+    })
+    .catch(err => {
+        console.log(err)
+    })
+})
+
+app.use('/admin', adminRoutes);
+app.use(shopRoutes);
+
+app.use(errorController.get404);
+mongoConnect(( ) => {
+   
+    app.listen(3000)
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//models 
+/*const User = require('./models/user');
 const Cart = require('./models/cart');
 const CartItem = require('./models/cart-item');
 const Order = require('./models/orders')
 const OrderItem = require('./models/orders-item')
 
-app.use((req, res, next) => {
+*/
+/*app.use((req, res, next) => {
     User.findByPk(1)
     .then((user) => {
         req.user = user;
@@ -32,18 +110,10 @@ app.use((req, res, next) => {
     .catch(err => {
         console.log(err)
     })
-})
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/admin', adminRoutes);
-app.use(shopRoutes);
-
-app.use(errorController.get404);
+})*/
 
 // Declaire Association in Sequelize to store new Tables sql
-Product.belongsTo(User, {constraints: true, onDelete: 'CASCADE'}); // many to one
+/*Product.belongsTo(User, {constraints: true, onDelete: 'CASCADE'}); // many to one
 User.hasMany(Product) // one to many 
 User.hasOne(Cart); // one to one 
 Cart.belongsTo(User) // many to one 
@@ -75,7 +145,7 @@ sequelize
 })
 .then(user => {
     //console.log(user)
-   return user.createCart()
+   return user.createCart() // one to one
     
 })
 
@@ -85,4 +155,4 @@ sequelize
 .catch(err => {
     console.log(err)
 });
-
+*/

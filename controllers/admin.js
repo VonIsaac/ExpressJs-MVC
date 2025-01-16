@@ -6,7 +6,8 @@ exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
-    editing: false
+    editing: false,
+    isAuthenticated: req.isLoggedIn
   });
 };
 
@@ -15,27 +16,36 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  // use req user from user table that wee creat in app
- const product = new Product(title, price, imageUrl, description, null, req.user._id) // acces the user fropm middleware
- product.save()
- .then((result) => {
-    //console.log(result)
-    console.log('Creat a Products')
-    res.redirect('/admin/products')
-  }).catch(err => {
-    console.log(err)
-  })
+  const product = new Product({
+    title: title,
+    price: price,
+    description: description,
+    imageUrl: imageUrl,
+    userId: req.user
+  });
+  product
+    .save()
+    .then(result => {
+      // console.log(result);
+      console.log('Created Product');
+      res.redirect('/admin/products');
+    })
+    .catch(err => {
+      console.log(err);
+    });
 };
 
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
+  //.populate('userId')
   .then((products) => {
     console.log(products)
     res.render('admin/products', {
       prods: products,
       pageTitle: 'Admin Products',
-      path: '/admin/products'
+      path: '/admin/products',
+      isAuthenticated: req.isLoggedIn
     });
   }).catch(err => {
     console.log(err)
@@ -50,7 +60,7 @@ exports.getEditProduct = (req, res, next) => {
   }
   const prodId = req.params.productId
  // req.user.getProducts({where: {id: prodId}})
-  Product.findId(prodId)
+  Product.findById(prodId)
   .then((product) => {
     // if wee not have product wee redirect in main page
     if(!product){
@@ -60,7 +70,8 @@ exports.getEditProduct = (req, res, next) => {
       pageTitle: 'Edit Product',
       path: '/admin/edit-product',
       editing: editMode, 
-      product: product
+      product: product,
+      isAuthenticated: req.isLoggedIn
      
     });
   }).catch(err => {
@@ -69,7 +80,6 @@ exports.getEditProduct = (req, res, next) => {
 };
 
 exports.postEditProducts = (req, res, next) => {
-
   // stored the existing products data
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
@@ -77,10 +87,14 @@ exports.postEditProducts = (req, res, next) => {
   const updatedImageUrl = req.body.imageUrl;
   const updatedDesc = req.body.description;
 
-    const product = new Product(updatedTitle, updatedPrice, updatedImageUrl, updatedDesc, prodId)
-    // then use save to modifide to support both creation and updating
-  product.save()
-  .then(result => {
+    Product.findById(prodId)
+    .then(product => {
+      product.title = updatedTitle,
+      product.price = updatedPrice,
+      product.imageUrl = updatedImageUrl,
+      product.description = updatedDesc
+      return product.save()
+    }).then(result => {
     console.log('UPDATED PRODUCT', result)
     res.redirect('/admin/products')
   })
@@ -88,13 +102,12 @@ exports.postEditProducts = (req, res, next) => {
   .catch(err => {
     console.log(err)
   })
-
 }
 
 
 exports.postDeleteProducts = (req, res, next) => {
   const prodId = req.body.productId
-  Product.deleteById(prodId)
+  Product.findByIdAndDelete(prodId)
   .then(result => {
     console.log("DESTROY PRODUCT");
       //after deleted wee redirect in this page  /admin/products

@@ -1,7 +1,63 @@
+const mongoose = require('mongoose');
+
+const Schema = mongoose.Schema;
+
+const productSchema = new Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  price: {
+    type: Number,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  imageUrl: {
+    type: String,
+    required: true
+  },
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Users',
+    required: true
+  }
+});
+
+module.exports = mongoose.model('Products', productSchema);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //calll sequelize library and import the sequlize 
-const getDB = require('../util/database').getDB
+/*const getDB = require('../util/database').getDB
 const mongodb = require('mongodb')
 class Product {
 
@@ -78,7 +134,7 @@ class Product {
   }
 }
 module.exports = Product;
-
+*/
 /*const Product = sequelize.define('product', {
   //set the model attributes a nd data types etc.
   id: {

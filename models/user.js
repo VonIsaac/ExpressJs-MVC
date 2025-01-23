@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-  name: {
+  email: {
     type: String,
     required: true
   },
-  email: {
+  password: {
     type: String,
     required: true
   },
@@ -27,6 +27,7 @@ const userSchema = new Schema({
 
     // for a posting a to the cart
     userSchema.methods.addToCart = function(product){
+        // create a new variable to store the index of a product
         const cartProductIndex = this.cart.items.findIndex(cp => {
             return cp.productId.toString() === product._id.toString()
         });
@@ -36,7 +37,7 @@ const userSchema = new Schema({
         if(cartProductIndex >= 0){
             // newQty have value the new cart whit data and increse qty
             newQty = this.cart.items[cartProductIndex].quantity + 1
-            //  then the default value became the new value and set the newQty value
+            // old item have new items with default qty
             updatedCartItems[cartProductIndex].quantity = newQty
         }else{
             // if not add a new items add a new product in the cart
@@ -53,6 +54,7 @@ const userSchema = new Schema({
 
     }
 
+    // to remove from cart
     userSchema.methods.removeFromCart = function(productId){
         const updateCartItems = this.cart.items.filter(item => {
             // return it the id of a cart and id of a products
@@ -64,6 +66,7 @@ const userSchema = new Schema({
         return this.save()
     }
 
+    // to clear a cart when its done checout
     userSchema.methods.clearCart = function(){
         this.cart ={item: []}
         return this.save()
